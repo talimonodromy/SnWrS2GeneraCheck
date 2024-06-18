@@ -1,6 +1,10 @@
 
 <p><strong>SnWrS2Ramification.sln</strong> - project written in C# in Microsoft Visual Studio Community 2019.
- the framework <a href="https://symbolics.mathdotnet.com/">Math.NET Symbolics</a>  is used for symbolic calculation.</p>
+ the framework <a href="https://symbolics.mathdotnet.com/">Math.NET Symbolics</a>  is used for symbolic calculation.</p> 
+
+The purpose of this project is to calculate the genera of certain subfields given an extension of function fields F/C(t) with Galois group and ramification data listed in Table 3.1 of the article "Monodromy Groups of Product Type" by Neftin--Zieve (https://arxiv.org/abs/2403.17168). 
+
+ 
 <p><strong>RamificationTests</strong> project: contains unit tests. 
 <strong>SnS2RamificationCheck</strong> project:  contains the genus calculations. Target framework: .net 5.0
         Program.cs - main class

@@ -35,6 +35,4 @@ Running the SnS2RamificationCheck project outputs several files:
 <li>the ramification data of an sn wr s2 extension is modeled by the class SnWrS2RamificationType, which wraps a list of SnWrBranchCycleReducedForm objects.</li>
 </ul>
 <p>Care must be taken in comparing these objects - always note whether or not the equality of expressions needs to be evaluated symbolically. </p>
-sns2check_documentation.html
-Displaying sns2check_documentation.html.
 

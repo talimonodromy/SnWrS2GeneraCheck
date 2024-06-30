@@ -1,6 +1,9 @@
 
 
+
 The purpose of this project is to calculate the genera of certain subfields of an extension of function fields F/C(t) with Galois group and ramification data listed in Table 3.1 of the article "Monodromy Groups of Product Type" by Neftin--Zieve (https://arxiv.org/abs/2403.17168).  This project is a part of my Ph.D. Thesis "Reducibility, Specialization and Related Low-Genus Phenomena", available upon request.
+
+You can access a google sheet with the results [here](https://docs.google.com/spreadsheets/d/1Y7uj72e3zrNj0GLyZnDUARUTYABRDcGLAFpLTDxZ37M/edit?usp=sharing)
 
 <p><strong>SnWrS2Ramification.sln</strong> - project written in C# in Microsoft Visual Studio Community 2019.
  the framework <a href="https://symbolics.mathdotnet.com/">Math.NET Symbolics</a>  is used for symbolic calculation.</p> 
@@ -34,3 +37,4 @@ Running the SnS2RamificationCheck project outputs several files:
 <p>Care must be taken in comparing these objects - always note whether or not the equality of expressions needs to be evaluated symbolically. </p>
 sns2check_documentation.html
 Displaying sns2check_documentation.html.
+

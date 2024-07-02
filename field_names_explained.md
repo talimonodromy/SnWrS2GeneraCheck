@@ -1,9 +1,11 @@
 This document details the contents of the ramification check results. The program receives as input a list of ramification data that may appear as the ramification data of an extension $\Omega/\mathbb{C}(t)$ with Galois group $A_n^2\leq G \leq S_n \wr S_2$.
+
 **Notation:**
  In what follows,  $S_n \wr S_2:=(S_n\times S_n) \rtimes S_2$, where $S_2$ acts on $S_n\times S_n$ by permuting the coordinates; similarly $A_n \wr S_2:=(A_n\times A_n)\rtimes S_2$; If two groups $H_1,H_2$ each have a unique projection onto a group $Q$, then we denote by $H_1\times_{Q}H_2$ indicates the fiber product of these projections.  "type names" implies the name given to the type in the classification of primitive monodromy groups (Neftin-Zieve, Guralnick-Shareshian).
 
 
 **Wreath Type** the corresponding type name in the input.
+
 **Mon** the monodromy group of the type. This is calculated via the following procedure:
 * Identify $S_n \wr S_2/ A_n\times A_n$ with $C_2\wr C_2$ (dihedral group of order 8).
 * calculate the image of each generator (element in data) $\mod A_n\times A_n$. 
@@ -11,9 +13,13 @@ This document details the contents of the ramification check results. The progra
 (this method has a problem since ramification data is only given up to $S_n\wr S_2$ conjugacy, however for our list of input it works OK, see Lemma 10.3 of "monodromy groups of product type" article. 
 
 **n substitution** assumptions on $n$. If $n=r\mod k$ then the program substitutes $r$ in $n$ to determine parity of expressions involving $n$.
+
 **a substitution** assumptions on $a$. If $a=r\mod k$ then the program substitutes $r$ in $a$ to determine parity of expressions involving $a$. 
+
 *Remark:* $n$ and $a$ are always considered modulo the same $k$.
+
 **assumptions** a string formatting of n assumptions and a assumptions together.
+
 
 **Sn-1xSn-1 contribution** calculation of the Riemann-Hurwitz contribution in $\Omega^{S_{n-1}^2\cap G}/\Omega^{S_{n-1}\wr S_2}$ - use this to calculate $g_{S_{n-1}^2}$ manually form the Riemann-Hurwitz formula + existing information on $g_{S_{n-1}\wr S_2}$  (by Remark 3.3 in the "Monodromy groups of product type" article: $g_{S_{n-1}\wr S_2}=0$ except for types I1A.1-I1A.3 and types F4.*, for which $g_{S_{n-1}\wr S_2}=1$.) We don't have a calculation of $g_{S_{n-1}\wr S_2}$ in this version so $g_{S_{n-1}^2}$ needs to be calculated manually. 
 

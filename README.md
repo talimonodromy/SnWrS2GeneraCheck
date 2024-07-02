@@ -1,7 +1,7 @@
 
 
 
-The purpose of this project is to calculate the genera of certain subfields of an extension of function fields F/C(t) with Galois group and ramification data listed in Table 3.1 of the article "Monodromy Groups of Product Type" by Neftin--Zieve (https://arxiv.org/abs/2403.17168).  This project is a part of my Ph.D. Thesis "Reducibility, Specialization and Related Low-Genus Phenomena", available upon request.
+The purpose of this project is to calculate the genera of certain subfields of an extension of function fields F/C(t) with Galois group and ramification data listed in Table 3.1 of the article "Monodromy Groups of Product Type" by Neftin--Zieve (https://arxiv.org/abs/2403.17168).  This project is a part of my Ph.D. Thesis "Reducibility, Specialization and Related Low-Genus Phenomena", available upon request (find me at: tali dot monderer at gmail dot com).
 
 You can access a google sheet with the results [here](https://docs.google.com/spreadsheets/d/1Y7uj72e3zrNj0GLyZnDUARUTYABRDcGLAFpLTDxZ37M/edit?usp=sharing) (or see the file results_041724_215540_c.xslx).
 

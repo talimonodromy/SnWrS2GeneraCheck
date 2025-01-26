@@ -2,6 +2,7 @@
 using SnS2RamificationCheck.Objects;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
@@ -102,20 +103,32 @@ namespace SnS2RamificationCheck
            var res = handler.Multiply(new SymExpression("1/2"), rhs);
            return SimplifyGenusExpression(res);
 
+        }
 
-
+        public ISymbolicExpression CalculateBottomGenus(ISymbolicExpressionHandler handler, ISymbolicExpression degree,
+            ISymbolicExpression rhContribution, ISymbolicExpression topGenus)
+        {
+            var topEulerChar = handler.Add(handler.Multiply(new SymExpression("2"), topGenus), new SymExpression("-2"));
+            var twiceDegree = handler.Multiply(degree, new SymExpression("2"));
+            var numerator = handler.Add(topEulerChar, twiceDegree);
+            numerator = handler.Add(handler.Multiply(new SymExpression("-1"), rhContribution),numerator);
+            var res = handler.Divide(numerator, twiceDegree);
+            return SimplifyGenusExpression(res);
         }
 
         //TODO get handler from partition handler, you have one!
-        public ISymbolicExpression CalculateGenusOfSymmetricActionPointStab(ISymbolicExpression degree, SnRamificationType ramTypeSnAction, ISymbolicExpression bottomGenus)
+            public ISymbolicExpression CalculateGenusOfSymmetricActionPointStab(ISymbolicExpression degree, SnRamificationType ramTypeSnAction, ISymbolicExpression bottomGenus)
         {
             var handler = PartitionHandler.SymbolicExpressionHandler;
             ISymbolicExpression rhContribution = new SymExpression("");
             foreach(var cycle in ramTypeSnAction.BranchCycles)
             {
+               
                 foreach(var part in cycle.Partition.Parts) {
                     var times = part.Times;
+                    
                     var contribution = handler.Add(part.Part, new SymExpression("-1"));
+                    times = handler.Multiply(times, cycle.Times); // added this to handle cycles which appear multiple times
                     var cycleContribution = handler.Multiply(contribution, times);
                     rhContribution = handler.Add(rhContribution, cycleContribution);
                 }
@@ -123,6 +136,7 @@ namespace SnS2RamificationCheck
             var genus = CalculateTopGenus(handler, degree, rhContribution, bottomGenus);
             return genus;
         }
+
 
 
         public Parity GetRamificationTypeParity(SnRamificationType sntype)
@@ -154,7 +168,7 @@ namespace SnS2RamificationCheck
             var cycles = new List<SnBranchCycle>();
             foreach (var input_branchcycle in input_snsquaredtype.BranchCycles)
             {
-                cycles.Add(new SnBranchCycle(input_branchcycle.LeftHandPartition));
+                cycles.Add(new SnBranchCycle(input_branchcycle.LeftHandPartition,input_branchcycle.Times));
             }
             return new SnRamificationType(input_snsquaredtype.Name, cycles);
         }
@@ -204,6 +218,63 @@ namespace SnS2RamificationCheck
         }
 
 
+        public SnSquaredRamificationType GetRHSOverKernelType(SnSquaredRamificationType snsnType)
+        {
+            //for each element x, for each part p of rhs, add x raised to the rhs (i.e., we have lhs^p, rhs^p, and also keep track of how many times p appears)
+            var newBranchCycles = new List<SnSquaredBranchCycle>();
+            foreach (var point in snsnType.BranchCycles)
+            {
+                var rhs = point.RightHandPartition;
+                var lhs = point.LeftHandPartition;
+                foreach (var part in rhs.Parts)
+                {
+                    Partition lhsPower = null;
+                    Partition rhsPower = null;
+                    if (PartitionHandler.PartIsInteger(part)) {
+                        lhsPower = PartitionHandler.Power(lhs, part.Part);
+                        rhsPower = PartitionHandler.Power(rhs, part.Part);
+
+                    }
+                    else
+                    {
+                        lhsPower = GetHardcodedPower(lhs, part.Part);
+                        rhsPower = GetHardcodedPower(rhs, part.Part);
+                    }
+                    newBranchCycles.Add(new SnSquaredBranchCycle(lhsPower = lhsPower, rhsPower = rhsPower, part.Times));
+
+                }
+            }
+
+            return new SnSquaredRamificationType(snsnType.Name, newBranchCycles);
+        }
+
+
+        public Partition GetHardcodedPower(Partition partition, ISymbolicExpression power)
+        {
+            var resParts = new List<PartitionPart>() { };
+
+            var handler = PartitionHandler.SymbolicExpressionHandler;
+            foreach (var part in partition.Parts)
+            {
+
+                //if (part,power) appears in hardcoded types dictionary, return the value from there.
+                var hardCodedMatch = NParameterHardcodedPower.FirstOrDefault(t =>
+                    handler.ExpressionsEqual(t.Item1, part.Part) && handler.ExpressionsEqual(t.Item2, power));
+                if (hardCodedMatch == null)
+                {
+                    throw new Exception("Unhandled hardcoded type in power calculations");
+                }
+                resParts.AddRange(hardCodedMatch.Item3);
+            }
+            //for each part with a parameter, we want to calculate via the hardcoded list 
+            return new Partition(resParts);
+        }
+
+        public bool TypeHasOnlyIntegerParts(SnSquaredRamificationType snsnType)
+        {
+            return snsnType.BranchCycles.All(cycle => PartitionHandler.HasOnlyIntegerParts(cycle.LeftHandPartition) && PartitionHandler.HasOnlyIntegerParts(cycle.RightHandPartition));
+        }
+
         public int GetNumberOfRamPointsFiberOverKernel(SnSquaredRamificationType snsnType)
         {
             var numRam = 0;
@@ -223,6 +294,9 @@ namespace SnS2RamificationCheck
             }
             return numRam;
         }
+
+
+
         public bool RamifiedInAnC4(SnWrS2BranchCycleReducedForm cycle)
         {
             var rhsParity = PartitionHandler.GetParity(cycle.RightHandPartition);
@@ -813,7 +887,12 @@ namespace SnS2RamificationCheck
 
         public SymExpression CalculateGcd(SymExpression expr1, SymExpression expr2)
         {
+
+            return PartitionHandler.CalculateGcd(expr1, expr2);
+
+
             //both are integers
+            /*
             var handler = PartitionHandler.SymbolicExpressionHandler;
             int number1;
             int number2;
@@ -825,7 +904,7 @@ namespace SnS2RamificationCheck
 
             throw new Exception("unable to calculate GCD");
             return null;
-
+            */
         }
 
         public SymExpression CalculateLcm(SymExpression expr1, SymExpression expr2)
@@ -851,6 +930,122 @@ namespace SnS2RamificationCheck
             return a;
         }
 
+       public static List<Tuple<SymExpression, SymExpression, List<PartitionPart>>> NParameterHardcodedPower =
+           new List<Tuple<SymExpression, SymExpression, List<PartitionPart>>>()
+           {
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("n"),
+                   new SymExpression("1"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("n","1")
+                   }
+                   ),
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+               new SymExpression("n"),
+               new SymExpression("n"),
+               new List<PartitionPart>()
+               {
+                   new PartitionPart("1","n")
+               }
+               ),
+               //we actually need a parity assumption here
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("n"),
+                   new SymExpression("a"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("n","1")
+                   }
+               
+                   ),
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("n"),
+                   new SymExpression("n-a"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("n","1")
+                   }
+
+               ),
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("a"),
+                   new SymExpression("a"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("1","a")
+                   }
+
+               ),
+
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("a"),
+                   new SymExpression("1"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("a","1")
+                   }
+
+               ),
+
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("a"),
+                   new SymExpression("n"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("a","1")
+                   }
+
+               ),
+
+
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("a"),
+                   new SymExpression("n-a"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("a","1")
+                   }
+
+               ),
+
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("n-a"),
+                   new SymExpression("1"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("n-a","1")
+                   }
+               ),
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("n-a"),
+                   new SymExpression("n-a"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("1","n-a")
+                   }
+               ),
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("n-a"),
+                   new SymExpression("a"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("n-a","1")
+                   }
+               ),
+               new Tuple<SymExpression, SymExpression, List<PartitionPart>>(
+                   new SymExpression("n-a"),
+                   new SymExpression("n"),
+                   new List<PartitionPart>()
+                   {
+                       new PartitionPart("n-a","1")
+                   }
+               )
+
+
+
+
+           };
 
         private static List<Tuple<Partition, ParityAssumption, Partition>> NParameterHardcoded2Orbits =
             new List<Tuple<Partition, ParityAssumption, Partition>>()
@@ -1047,6 +1242,16 @@ namespace SnS2RamificationCheck
             return snBranchCycle.Partition.Parts.Any(p => p.Part.Expression.Contains("n"));
         }
 
+        public bool ContainsPartWithParameterN(Partition partition) //design wise this should either not be  a function here or the branch cycle version should depend on this.
+        {
+            return partition.Parts.Any(p => p.Part.Expression.Contains("n"));
+        }
+
+        public bool ContainsPartWithParameterA(Partition partition)
+        {
+            return partition.Parts.Any(p => p.Part.Expression.Contains("a"));
+        }
+
         //this should be defined as compatible to lower modulo.
         public static bool AssumptionsCompatible(ParityAssumption assumption1, ParityAssumption assumption2)
         {
@@ -1084,6 +1289,8 @@ namespace SnS2RamificationCheck
             return AssumptionsCompatible(nAssumptions1, nAssumption2) &&
                    AssumptionsCompatible(aAssumptions1, aAssumption2);
         }
+
+      
         public Partition GetOrbitsInTwoSetAction(SnBranchCycle snBranchCycle)
         {
             var handler = PartitionHandler.SymbolicExpressionHandler;

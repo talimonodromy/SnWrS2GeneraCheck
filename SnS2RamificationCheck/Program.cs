@@ -49,6 +49,8 @@ namespace SnS2RamificationCheck
             resTable.Columns.Add("assumptions");
 
             resTable.Columns.Add("Sn-1xSn-1 contribution");
+            resTable.Columns.Add("sn-1xsn-1 genus");
+            resTable.Columns.Add("S_{n-1} wr S_2");
             //  resTable.Columns.Add("assumptions applicable");
 
             resTable.Columns.Add("Kernel type");
@@ -218,6 +220,9 @@ namespace SnS2RamificationCheck
                         //contribution to 1,1: count total number of odd orbits in elements with swaps
                         var oneOneContribution = calculator.GetNumberOfOddOrbitsInSwaps(wreathType);
                         row["Sn-1xSn-1 contribution"] = FormatGenusExpression(handler,oneOneContribution);
+
+                  
+                        //TODO here you can calculate the genus of the primitive point stabilizer
                         //projection to RHS
                         var projectionToRhs = calculator.ProjectToRhsType(kernelType);
                         var snSnPtGenus =
@@ -226,6 +231,28 @@ namespace SnS2RamificationCheck
                                 kernelGenus);
 
                         row["pt stab genus"] = snSnPtGenus;
+
+
+                        var typeHasOnlyIntegerParts = calculator.TypeHasOnlyIntegerParts(kernelType);
+                        //calculate 1,1 stabilizer but only for types where no part is given by a parameter
+                    //    if (typeHasOnlyIntegerParts)
+                    if (true)
+                        {
+                            var snsptstabramtype = calculator.GetRHSOverKernelType(kernelType);
+                            var lhs = calculator.ProjectToLhsType(snsptstabramtype);
+                            var g11ptstab = calculator.CalculateGenusOfSymmetricActionPointStab(new SymExpression("n"),
+                                lhs, snSnPtGenus);
+                            row["sn-1xsn-1 genus"] = g11ptstab;
+
+                            var primitivePtGenus = calculator.CalculateBottomGenus(handler, new SymExpression("2"),
+                                oneOneContribution, g11ptstab);
+
+                            row["S_{n-1} wr S_2"] = primitivePtGenus;
+                        }
+                        else
+                        {
+
+                        }
 
                         var rhsMatch = snTypes.SingleOrDefault(t =>
                             calculator.BranchCyclesEqual(t, projectionToRhs));
@@ -589,7 +616,7 @@ namespace SnS2RamificationCheck
                                 var accolaCheck = handler.ExpressionsEqual(accolaCheckSide2, accolaCheckSide1);
                                 row["accola check"] = accolaCheck;
 
-                                //extra subgroups of 2set stabilizer obtained via accola - c'mon we can do this!!!
+                
                                 
                                 break;
                         }

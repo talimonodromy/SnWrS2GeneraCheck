@@ -13,6 +13,10 @@ namespace SnS2RamificationCheck.Interfaces
             _expression = expr;
         }
 
+        public SymExpression(int i)
+        {
+            _expression = i.ToString();
+        }
         private string _expression;
         public string Expression { get { return _expression; } }
 

@@ -1,5 +1,7 @@
-﻿using SnS2RamificationCheck.Interfaces;
+﻿using System;
+using SnS2RamificationCheck.Interfaces;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SnS2RamificationCheck
 {
@@ -34,6 +36,22 @@ namespace SnS2RamificationCheck
             return r < 0 ? r + modulus : r;
         }
 
+        public SymExpression CalculateGcd(SymExpression expr1, SymExpression expr2)
+        {
+            //both are integers
+            var handler = SymbolicExpressionHandler;
+            int number1;
+            int number2;
+            if (handler.TryParseInteger(expr1, out number1) && handler.TryParseInteger(expr2, out number2))
+            {
+                var intGcd = RamificationTypeCalculator.CalculateIntegerGCD(number1, number2);
+                return new SymExpression(intGcd.ToString());
+            }
+
+            throw new Exception("unable to calculate GCD");
+            return null;
+
+        }
 
         public Partition GetSecondPower(Partition partition)
         {
@@ -78,6 +96,53 @@ namespace SnS2RamificationCheck
             return res;                
         }
 
+
+        public Partition Power(Partition partition, ISymbolicExpression power)
+        {
+            // for every part, you need to take its power
+            var parts = new List<PartitionPart>();
+            foreach (var part in partition.Parts)
+            {
+                parts.AddRange(GetIntegerPartPower(part,power));
+            }
+            return new Partition(parts);
+        }
+
+        public bool PartIsInteger(PartitionPart part)
+        {
+            int outputInt;
+          var res = SymbolicExpressionHandler.TryParseInteger(part.Part, out outputInt);
+          return res;
+        }
+
+        public bool HasOnlyIntegerParts(Partition partition) //TODO need to move this to partition handler
+        {
+            int outputInt;
+            return partition.Parts.Select(PartIsInteger).All(success => success);
+        }
+        public IEnumerable<PartitionPart> GetIntegerPartPower(PartitionPart part, ISymbolicExpression power)
+        {
+            //we assume part.part is an integer and power is an integer (times can be an expression)
+            //if both integers: a'th power of a cycle of length c is c/gcd(c,a), gcd(c,a) times.
+            int intPower;
+            int partLength;
+            if (SymbolicExpressionHandler.TryParseInteger(part.Part, out partLength) &&
+                SymbolicExpressionHandler.TryParseInteger(power, out intPower))
+            {
+                var gcd = RamificationTypeCalculator.CalculateIntegerGCD(partLength, intPower);
+                var newLength = partLength / gcd;
+                var cycleTimes = new SymExpression(gcd);
+                var newTimes = (SymExpression)SymbolicExpressionHandler.Multiply(part.Times, cycleTimes);
+                var newPart = new PartitionPart(new SymExpression(newLength), newTimes);
+                return new List<PartitionPart>() { newPart }; // theoretically we could have obtained here a longer list (though not really) so signature returns a list.
+
+            }
+            //TODO if we got here throw some exception
+            throw new SymbolicExpressionHandlingException(
+                "Expected things to be an integers when calculating integer part power");
+            return null; 
+        }
+
         //TODO we're still assuming the "part" strings are unique...but OK 
         //TODO there's a severe error here, part comparison needs to be performed by symbolic expression handler or at least strip the strings..
         public bool PartitionEquals(Partition partition1, Partition partition2)
@@ -101,5 +166,7 @@ namespace SnS2RamificationCheck
             }
             return false;
         }
+
+        
     }
 }
